@@ -84,3 +84,18 @@ class PriceEvent(ChiaEvent):
     eur_cents = Column(Integer)
     btc_satoshi = Column(Integer)
     eth_gwei = Column(Integer)
+
+
+class SpacePoolFarmerEvent(ChiaEvent):
+    __tablename__ = "space_pool_farmer_events"
+    ts = Column(DateTime, primary_key=True)
+    unpaid_balance_mojos = Column(Integer)
+    paid_balance_mojos = Column(Integer)
+    total_points = Column(Integer)
+    pending_points = Column(Integer)
+    global_pending_points = Column(Integer)
+    blocks_found = Column(Integer)
+    estimated_plot_size = Column(Integer)
+    estimated_plot_count = Column(Integer)
+    difficulty = Column(Integer)
+    rank = Column(Integer)

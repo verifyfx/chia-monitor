@@ -12,6 +12,7 @@ from sqlalchemy.exc import OperationalError
 
 from monitor.collectors import RpcCollector, WsCollector
 from monitor.collectors.price_collector import PriceCollector
+from monitor.collectors.spacepool_collector import SpacePoolCollector
 from monitor.database import ChiaEvent, async_session
 from monitor.exporter import ChiaExporter
 from monitor.notifier import Notifier
@@ -64,6 +65,8 @@ async def aggregator(exporter: ChiaExporter, notifier: Optional[Notifier], rpc_r
         logging.info("🔌 Creating Price Collector...")
         price_collector = await PriceCollector.create(DEFAULT_ROOT_PATH, chia_config, event_queue,
                                                       price_refresh_interval)
+
+        space_pool_collector = await SpacePoolCollector.create(DEFAULT_ROOT_PATH, chia_config, event_queue)
     except Exception as e:
         logging.warning(
             f"Failed to create Price collector. Continuing without it. {type(e).__name__}: {e}")
@@ -76,6 +79,8 @@ async def aggregator(exporter: ChiaExporter, notifier: Optional[Notifier], rpc_r
             asyncio.create_task(notifier.task())
         if price_collector is not None:
             asyncio.create_task(price_collector.task())
+        if space_pool_collector is not None:
+            asyncio.create_task(space_pool_collector.task())
         while True:
             try:
                 event = await event_queue.get()
