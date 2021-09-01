@@ -115,6 +115,7 @@ def format_points_found(points: int) -> str:
 def format_points_acknowledged(points: int) -> str:
     return f"🟢 Pool Acknowledged: {points}"
 
+
 def format_points_found_24h(points: int) -> str:
     return f"🟡 Pool Found Last 24H: {points}"
 
@@ -125,6 +126,10 @@ def format_points_acknowledged_24h(points: int) -> str:
 
 def format_pool_errors_24h(errors: int) -> str:
     return f"❌ Pool Errors 24h: {errors}"
+
+
+def format_sp(name: str, stat: int) -> str:
+    return f"🚀 Space pool {name}: {stat}"
 
 
 def format_price(amount: int, currency: str, fix_indent=False) -> str:

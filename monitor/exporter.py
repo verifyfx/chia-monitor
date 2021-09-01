@@ -4,7 +4,7 @@ from prometheus_client import Counter, Gauge, start_http_server
 
 from monitor.database.events import (BlockchainStateEvent, ChiaEvent, ConnectionsEvent, FarmingInfoEvent,
                                      HarvesterPlotsEvent, PoolStateEvent, PriceEvent, SignagePointEvent,
-                                     WalletBalanceEvent)
+                                     WalletBalanceEvent, SpacePoolFarmerEvent)
 from monitor.format import *
 
 
@@ -61,6 +61,19 @@ class ChiaExporter:
     price_btc_satoshi_gauge = Gauge('chia_price_btc_satoshi', 'Current Chia price in BTC satoshi')
     price_eth_gwei_gauge = Gauge('chia_price_eth_gwei', 'Current Chia price in ETH gwei')
 
+    # Space pool metrics
+    space_pool_unpaid_balance_gauge = Gauge('sp_unpaid_balance_mojo', 'space pool unpaid balance in mojo')
+    space_pool_paid_balance_gauge = Gauge('sp_paid_balance_mojo', 'space pool paid balance in mojo')
+    space_pool_total_points_gauge = Gauge('sp_total_point', 'space pool total points')
+    space_pool_pending_points_gauge = Gauge('sp_pending_point', 'space pool pending points')
+    space_pool_global_pending_points_gauge = Gauge('sp_global_pending_point', 'space pool global pending points')
+    space_pool_block_found_gauge = Gauge('sp_block_found', 'space pool block found')
+    space_pool_estimated_plot_size_gauge = Gauge('sp_estimated_plot_size', 'space pool estimated plot size')
+    space_pool_estimated_plot_count_gauge = Gauge('sp_estimated_plot_count', 'space pool estimated plot count')
+    space_pool_difficulty_gauge = Gauge('sp_difficulty', 'space pool difficulty')
+    space_pool_rank_gauge = Gauge('sp_rank', 'space pool rank')
+
+
     def __init__(self, port: int) -> None:
         self.log = logging.getLogger(__name__)
         start_http_server(port)
@@ -82,6 +95,8 @@ class ChiaExporter:
             self.update_pool_state_metrics(event)
         elif isinstance(event, PriceEvent):
             self.update_price_metrics(event)
+        elif isinstance(event, SpacePoolFarmerEvent):
+            self.update_space_pool_metrics(event)
 
     def update_harvester_metrics(self, event: HarvesterPlotsEvent) -> None:
         self.log.info("-" * 64)
@@ -175,3 +190,26 @@ class ChiaExporter:
         self.price_btc_satoshi_gauge.set(event.btc_satoshi)
         self.log.info(format_price(event.eth_gwei / 10e8, "ETH", fix_indent=True))
         self.price_eth_gwei_gauge.set(event.eth_gwei)
+
+    def update_space_pool_metrics(self, event: SpacePoolFarmerEvent):
+        self.log.info("-" * 64)
+        self.log.info(format_price(event.unpaid_balance_mojos / 1e12, "XCH", fix_indent=True))
+        self.space_pool_unpaid_balance_gauge.set(event.unpaid_balance_mojos)
+        self.log.info(format_price(event.paid_balance_mojos / 1e12, "XCH", fix_indent=True))
+        self.space_pool_paid_balance_gauge.set(event.paid_balance_mojos)
+        self.log.info(format_sp("total points", event.total_points))
+        self.space_pool_total_points_gauge.set(event.total_points)
+        self.log.info(format_sp("pending points", event.pending_points))
+        self.space_pool_pending_points_gauge.set(event.pending_points)
+        self.log.info(format_sp("global pending points", event.global_pending_points))
+        self.space_pool_global_pending_points_gauge.set(event.global_pending_points)
+        self.log.info(format_sp("block found", event.blocks_found))
+        self.space_pool_block_found_gauge.set(event.blocks_found)
+        self.log.info(format_sp("estimated plot size", event.estimated_plot_size))
+        self.space_pool_estimated_plot_size_gauge.set(event.estimated_plot_size)
+        self.log.info(format_sp("estimated plot count", event.estimated_plot_count))
+        self.space_pool_estimated_plot_count_gauge.set(event.estimated_plot_count)
+        self.log.info(format_sp("difficulty", event.difficulty))
+        self.space_pool_difficulty_gauge.set(event.difficulty)
+        self.log.info(format_sp("rank", event.rank))
+        self.space_pool_rank_gauge.set(event.rank)
